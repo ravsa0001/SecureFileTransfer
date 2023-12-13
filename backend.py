@@ -7,7 +7,7 @@ client = MongoClient("mongodb://127.0.0.1:27017")
 
 ez = client["ez"]
 users_data = ez["users_data"]
-
+file_storage = ez["files_ storage"]
 
 @app.route("/")
 def home():
@@ -56,24 +56,31 @@ def login():
             return jsonify({"text":"Incorrect Password"})
         return jsonify({"text":"Email doesn't exists"})
     
+    
+    
 @app.route("/uploads", methods=["GET", "POST"])
 def upload():
     if 'file' not in request.files:
-        return jsonify({"message": "File type not selected"}), 400
+        return jsonify({"message": "File type not selected"})
 
     file = request.files["file"]
     if file.filename == '':
         return jsonify({'message': 'No selected file'})
 
-    # data = request.json()
-    # file_name = data["file"]
+    data = request.json()
+    file_name = data["file"]
 
-    file.save("uploads" + '/' + file.filename)
+    # file.save("uploads" + '/' + file.filename)
+    # return jsonify({"message": "HOTx"}) 
 
-    return jsonify({"message": "HOTx"}) 
-
-    # unique_key = str(uuid.uuid4())[:8]  
-    
+    unique_key = str(uuid.uuid4())[:8]  
+    file_link =  file.save("uploads" + '/' + file.filename)
+    file_storage.insert_one({
+        "file name": file_name, 
+        "file link": file_link,
+        "download key": unique_key,
+    })
+    return jsonify({"message": "File uploaded successfully"})
     
 
     # db = get_db()
@@ -87,18 +94,16 @@ def upload():
     
     
      
-# @app.route("/api/upload", methods=["GET", "POST"])
-# def upload():
-#     if 'file' not in request.files:
-#         return redirect(request.url)
+@app.route("/uploaded-files", methods=["GET", "POST"])
+def uploaded():
 
-#     file = request.files['file']
-#     file.save(app.config['UPLOAD_FOLDER'] + '/' + file.filename) 
-
-#     # if file.filename == '':
-#     #     return redirect(request.url)
-    
-#     # return result        
+    # if file:
+    #     files = file_storage.find_one(file)
+    #     file_path = files["download key"]
+    #     return send_file(file_path, as_attachment = True)
+    # return jsonify({"message": "File not found"})
+    pass
+         
         
  
 
