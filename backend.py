@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, flash, jsonify, url_for, session, redirect, send_file
 from pymongo import MongoClient
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+from flask_mail import Mail, Message
 import uuid
 
 app = Flask(__name__)
@@ -9,16 +11,19 @@ ez = client["ez"]
 users_data = ez["users_data"]
 file_storage = ez["files_ storage"]
 
+app.config.from_pyfile('config.py')
+
+mail = Mail(app)
+
 @app.route("/")
 def home():
     return "Hello there!"
         
         
-@app.route("/signup", methods = ["GET","POST"])
-def index():
+@app.route("/signup_operation", methods = ["GET","POST"])
+def signUpOp():
     if request.method == "POST":
         data = request.json  
-        
         mail = data["email"]
         email = users_data.find_one({"email": mail})
         
@@ -35,6 +40,40 @@ def index():
                                 
             return jsonify({"text": "Regsitered Successfully" })
     return jsonify({"text": "Insert Data"})
+
+
+s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+def send_verification_email(all_info):
+    email = all_info['email']
+    token = s.dumps(all_info, salt="verificaion")
+    msg = Message('Confirm Email', recipients=[email])
+    link = url_for('verify', token=token, _external=True)
+    msg.body = f'Your verification link is {link}'
+    mail.send(msg)
+
+@app.route("/signup_client", methods = ["GET", "POST"])
+def signUpCL():
+    if request.method == "POST":
+        data = request.json
+        
+        all_info = data["info"]
+        
+        send_verification_email(all_info)
+        
+        return jsonify({"message": "Verification link is sent to your Email"})
+    
+@app.route("/verify/<token>", methods=["GET", "POST"])
+def verify(token):
+    try:
+        all_info = s.loads(token, salt="verificaion", max_age = 180)
+        
+        users_data.insert_one(all_info)
+        
+        return jsonify({"message": "You have Successfully Registered"})
+    except SignatureExpired:
+        return jsonify({"message": "Your token is expired"})
+
 
 
 
@@ -83,27 +122,16 @@ def upload():
     return jsonify({"message": "File uploaded successfully"})
     
 
-    # db = get_db()
-    # cursor = db.cursor()
-    # cursor.execute("INSERT INTO files (filename, file_link, download_key) VALUES (?, ?, ?)", (file.filename, os.path.join(UPLOAD_FOLDER, file.filename), unique_key))
-    # db.commit()
-    # cursor.close()
-
-    # file.save(os.path.join(UPLOAD_FOLDER, file.filename))
-    # return jsonify({'message': 'File uploaded successfully', 'download_key': unique_key}), 200
-    
-    
      
 @app.route("/uploaded-files", methods=["GET", "POST"])
 def uploaded():
 
-    # if file:
-    #     files = file_storage.find_one(file)
-    #     file_path = files["download key"]
-    #     return send_file(file_path, as_attachment = True)
-    # return jsonify({"message": "File not found"})
-    pass
-         
+    if file:
+        files = file_storage.find_one(file)
+        file_path = files["download key"]
+        return send_file(file_path, as_attachment = True)
+    return jsonify({"message": "File not found"})
+    
         
  
 
