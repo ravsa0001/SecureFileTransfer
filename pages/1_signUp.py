@@ -1,7 +1,6 @@
 import requests
 import streamlit as st
 import re
-
 from next_page import nav_page
 
 def validate_email(email):
@@ -24,10 +23,10 @@ with st.form(key = "sign-up", clear_on_submit = True):
         
     password1 = st.text_input(":blue[Password]", placeholder = "Password", type = "password")
     password2 = st.text_input(":blue[Confirm Password]", placeholder = "Password", type = "password")  
-    if len(password1) >= 6:
+    if password1 != "" and len(password1) >= 6:
         if password1 != password2:
             st.warning(":red[Password must be same]")
-    else: 
+    elif password1 != ""and len(password1) < 6:
         st.warning("password is too short")
                    
     if password1 != password2:
@@ -49,7 +48,7 @@ with st.form(key = "sign-up", clear_on_submit = True):
             response = requests.post(url,json = data)
 
             result = response.json()
-            st.warning(result["text"])
+            st.write(result["text"])
             
             # nav_page("logIn")
             
@@ -66,6 +65,6 @@ with st.form(key = "sign-up", clear_on_submit = True):
             response = requests.post(url, json = data)
             # print(response)
             result = response.json()
-            st.warning(result["message"])
+            st.write(result["message"])
             
         

@@ -18,6 +18,10 @@ with st.form(key = "log-in", clear_on_submit = True):
         result = response.json()
         st.write(result['text'])
         
+        if "user" not in st.session_state:
+            st.session_state["user"] = result["user"]
+        
+        
         if result["user"] == "Client":
             nav_page("uploaded_files")
             
