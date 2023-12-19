@@ -1,6 +1,6 @@
 import requests
 import streamlit as st
-
+from next_page import nav_page
 
 with st.form(key = "log-in", clear_on_submit = True):
     st.subheader(":green[Log-In]")
@@ -16,7 +16,10 @@ with st.form(key = "log-in", clear_on_submit = True):
         }
         response = requests.post(url, json = data)
         result = response.json()
-        st.warning(result['text'])
+        st.write(result['text'])
         
-    
+        if result["user"] == "Client":
+            nav_page("uploaded_files")
             
+        elif result["user"] == "Operation":
+            nav_page("upload")

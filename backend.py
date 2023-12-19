@@ -1,15 +1,16 @@
-from flask import Flask, render_template, request, flash, jsonify, url_for, session, redirect, send_file
+from flask import Flask, request, jsonify, url_for
 from pymongo import MongoClient
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from flask_mail import Mail, Message
 import uuid
+import base64
 
 app = Flask(__name__)
 client = MongoClient("mongodb://127.0.0.1:27017") 
 
 ez = client["ez"]
 users_data = ez["users_data"]
-file_storage = ez["files_ storage"]
+file_storage = ez["files_storage"]
 
 app.config.from_pyfile('config.py')
 
@@ -56,10 +57,8 @@ def send_verification_email(all_info):
 def signUpCL():
     if request.method == "POST":
         data = request.json
-        
-        all_info = data["info"]
-        
-        send_verification_email(all_info)
+        # all_info = data["info"]
+        send_verification_email(data)
         
         return jsonify({"message": "Verification link is sent to your Email"})
     
@@ -67,7 +66,6 @@ def signUpCL():
 def verify(token):
     try:
         all_info = s.loads(token, salt="verificaion", max_age = 180)
-        
         users_data.insert_one(all_info)
         
         return jsonify({"message": "You have Successfully Registered"})
@@ -97,41 +95,28 @@ def login():
     
     
     
-@app.route("/uploads", methods=["GET", "POST"])
+@app.route("/upload", methods=["GET", "POST"])
 def upload():
-    if 'file' not in request.files:
-        return jsonify({"message": "File type not selected"})
 
-    file = request.files["file"]
-    if file.filename == '':
-        return jsonify({'message': 'No selected file'})
+    data = request.json
+    file = data["file_name"]
+    
+    path = "/home/vo1d/Desktop/VS_Code/ez/uploads/"
+    uploaded_file = data["uploaded_file"]
 
-    data = request.json()
-    file_name = data["file"]
+    data = bytes(uploaded_file, "utf-8")
+    file_path = f"{path}{file}"
+    
+    with open(file_path, 'wb') as f:
+        f.write(data)
 
-    # file.save("uploads" + '/' + file.filename)
-    # return jsonify({"message": "HOTx"}) 
-
-    unique_key = str(uuid.uuid4())[:8]  
-    file_link =  file.save("uploads" + '/' + file.filename)
+    unique_key = str(uuid.uuid4())[:8]
     file_storage.insert_one({
-        "file name": file_name, 
-        "file link": file_link,
+        "file name": file, 
+        "file link": file_path,
         "download key": unique_key,
     })
     return jsonify({"message": "File uploaded successfully"})
-    
-
-     
-@app.route("/uploaded-files", methods=["GET", "POST"])
-def uploaded():
-
-    if file:
-        files = file_storage.find_one(file)
-        file_path = files["download key"]
-        return send_file(file_path, as_attachment = True)
-    return jsonify({"message": "File not found"})
-    
         
  
 
