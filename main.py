@@ -6,9 +6,7 @@ st.session_state["user"] = "None"
 
 st.title("FileSafe")
 
-
 col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
-
 with col6:
     if st.button("Register"):
         nav_page("signUp")

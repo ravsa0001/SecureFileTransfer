@@ -18,8 +18,11 @@ with st.form(key = "log-in", clear_on_submit = True):
         result = response.json()
         st.write(result['text'])
         
-        if "user" not in st.session_state:
+        if st.session_state["user"] == "None":
             st.session_state["user"] = result["user"]
+        
+        if "user_name" not in st.session_state:
+            st.session_state["user_name"] = result["user_name"]
         
         
         if result["user"] == "Client":

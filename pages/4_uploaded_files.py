@@ -1,5 +1,7 @@
 import streamlit as st
 from pymongo import MongoClient
+import requests
+
 
 client = MongoClient("mongodb://127.0.0.1:27017")
 
@@ -9,6 +11,23 @@ file_storage = datab.files_storage
 if st.session_state["user"] == "None":
     st.header("Log-In first to get acces for this page")
 
+def click():
+    st.balloons()
+    for keys in st.session_state:
+        if keys.startswith("But"):
+            if st.session_state[keys]:
+                name_key = int(keys[-1])
+                url = "http://127.0.0.1:5000/uploaded_files"
+                data = {"index": name_key}
+                
+                response = requests.post(url, json = data)
+                result = response.json()
+
+                filedata = result["filedata"]
+                uploaded_file = bytes(filedata, "utf-8")
+                file_name = result["file_name"]
+                st.download_button("Downlaod", uploaded_file, file_name = file_name)
+
 if st.session_state["user"] != "None":
     st.header("All files")
 
@@ -16,37 +35,17 @@ if st.session_state["user"] != "None":
 
     with col1:
         for files in file_storage.find():
-            # st.write(files["file name"])
             names = files["file name"]
-            # st.markdown("""<style> .big-font { font-size:15px !important;}
-            #     </style> """, unsafe_allow_html=True)
-            # st.markdown(f'<p class="big-font">{names} </p>', unsafe_allow_html=True)
             st.subheader(names, divider = True)
-            # pass
-        
+            
     with col2:
+        names_list = []
         for files in file_storage.find():
-            path = files["file link"]
-            file_name = files["file name"]
-            with open(path, "rb") as f:
-                st.download_button("Download", path, file_name = file_name)
-                st.write(" ")
-
-
-
-# st.subheader(":green[Uploaded files]")
-# files_list = ["File Name","Download key"]
-# for files in file_storage.find():
-#     files_list.append(files["file name"])        
-#     files_list.append(files["download key"])
+            names = files["file name"]
+            names_list.append(names)
+        
+        for i in range(0, len(names_list)):
+            st.button("Download", key = f"Button{i}", on_click =  click)
+            st.write(" ")
+        
     
-# st.table(files_list)
-
-# for files in file_storage.find():
-#     name = files["file name"]
-#     st.download_button(f"To download file {name}", file_name = files)
-    
-    
-    
-    
-# st.subheader("hello")

@@ -2,8 +2,8 @@ from flask import Flask, request, jsonify, url_for
 from pymongo import MongoClient
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from flask_mail import Mail, Message
+from cryptography.fernet import Fernet
 import uuid
-import base64
 
 app = Flask(__name__)
 client = MongoClient("mongodb://127.0.0.1:27017") 
@@ -35,10 +35,10 @@ def signUpOp():
                 users_data.insert_one({"username": data["username"], 
                                 "email": data["email"], 
                                 "password":data["password"], 
-                                "user": data["user"]})
+                                "user": data["user"],
+                                "key": data["key"]})
             else:
-                return jsonify({"text": "Passwords must be same"})
-                                
+                return jsonify({"text": "Passwords must be same"})         
             return jsonify({"text": "Regsitered Successfully" })
     return jsonify({"text": "Insert Data"})
 
@@ -89,7 +89,9 @@ def login():
         if email:
             confirm = email["password"]
             if passwod == confirm:
-                return jsonify({"text":"Successfully loged In", "user": email["user"]})
+                return jsonify({"text":"Successfully loged In", 
+                                "user": email["user"], 
+                                "user_name": email["username"]})
             return jsonify({"text":"Incorrect Password"})
         return jsonify({"text":"Email doesn't exists"})
     
@@ -100,28 +102,84 @@ def upload():
 
     data = request.json
     file = data["file_name"]
-    
-    path = "/home/vo1d/Desktop/VS_Code/ez/uploads/"
+
     uploaded_file = data["uploaded_file"]
-
-    data = bytes(uploaded_file, "utf-8")
-    file_path = f"{path}{file}"
+    # filedata = bytes(uploaded_file, "utf-8")
     
+    user_name = data["user_name"]
+    userdata = users_data.find_one({"username": user_name})
+    # print(userdata, user_name)
+    keykey = userdata["key"]
+    byte_key = bytes(keykey, "utf-8")
+    fernet = Fernet(byte_key)
+    enfile = fernet.encrypt(uploaded_file.encode())
+    print("********************************88")
+    print(type(enfile))
+    
+    
+    unique_name = str(uuid.uuid4())[:8]+'.txt'
+    path = "/home/vo1d/Desktop/VS_Code/ez/uploads/"
+    file_path = f"{path}{unique_name}"
     with open(file_path, 'wb') as f:
-        f.write(data)
+        f.write(enfile)
 
-    unique_key = str(uuid.uuid4())[:8]
     file_storage.insert_one({
         "file name": file, 
-        "file link": file_path,
-        "download key": unique_key,
+        "file data": file_path,
+        "upuser": user_name,
+        "key": keykey
+        # "download key": unique_key,
     })
     return jsonify({"message": "File uploaded successfully"})
+
+
+
+
+@app.route("/uploaded_files", methods = ["GET", "POST"])
+def uploaded():
+    data = request.json
+    index = data["index"]
+    name_list = []
+    for files in file_storage.find():
+        names = files["file name"]
+        name_list.append(names)
+        
+    file_name = name_list[index]
+    
+    file_data = file_storage.find_one({"file name": file_name})
+    # print("$$$$$$$$$$$$$$$$$$$$$$4")
+    # print(file_data)
+    path = file_data["file data"]
+    with open(path, "rb") as f:
+        filedata = f.read()
+    keykey = file_data["key"]
+    print(type(keykey))
+    byte_key = bytes(keykey, "utf-8")
+    print(type(byte_key))
+    fernet = Fernet(byte_key)
+    
+    file_decrypt = fernet.decrypt(filedata).decode()
+    return jsonify({"filedata": file_decrypt, "file_name": file_name})
+
+    # for files in file_storage.find():
+    #     file_name = files["file name"]
+    #     path = files["file data"]
+        
+    #     with open(path, "rb") as f:
+    #         filedata = f.load()
+        
+    #     keykey = files["key"]
+    #     byte_key = bytes(keykey, "utf-8")
+    #     fernet = Fernet(byte_key)
+        
+    #     file_decrypt = fernet.decrypt(filedata).decode()
+        
+    #     # file_ka_data = bytes(file_decrypt, "utf-8")
+    #     return jsonify({"filedata": file_decrypt, "file_name": file_name})
+        
         
  
 
+
 if __name__ == "__main__":
     app.run(debug = True)
-    
-    
-    

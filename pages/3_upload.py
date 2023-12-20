@@ -13,16 +13,17 @@ elif st.session_state["user"] == "Operation":
         
         byte_value = uploaded_file.getvalue()
         byte_string = str(byte_value, encoding = "latin-1")
-        # byte_string = byte_value.decode("utf-8")
+        
+        user_name = st.session_state["user_name"]
         
         url = "http://127.0.0.1:5000/upload" 
         data = {
             "file_name": uploaded_file.name, 
             "file_type": uploaded_file.type,
-            "uploaded_file": byte_string
+            "uploaded_file": byte_string, 
+            "user_name": user_name
         }
         response = requests.post(url, json = data)
-        
         result = response.json()
         st.write(result["message"])
 

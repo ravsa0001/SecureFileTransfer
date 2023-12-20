@@ -2,6 +2,7 @@ import requests
 import streamlit as st
 import re
 from next_page import nav_page
+from cryptography.fernet import Fernet
 
 def validate_email(email):
     pattern = "^[a-zA-Z0-9-_]+@[a-zA-Z0-9]+\.[a-z]{1,3}$ "
@@ -37,13 +38,17 @@ with st.form(key = "sign-up", clear_on_submit = True):
         
     if st.form_submit_button("Submit"):
         if user == "Operation":
+            key = Fernet.generate_key()
+            str_key = str(key, encoding = "utf-8")
+            
             url = "http://127.0.0.1:5000/signup_operation"
             data= {
                 "username": user_name,
                 "email":email,
                 "password":password1,
                 "password2":password2,
-                "user": user
+                "user": user,
+                "key": str_key
             }
             response = requests.post(url,json = data)
 
