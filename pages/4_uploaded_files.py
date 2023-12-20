@@ -12,7 +12,6 @@ if st.session_state["user"] == "None":
     st.header("Log-In first to get acces for this page")
 
 def click():
-    st.balloons()
     for keys in st.session_state:
         if keys.startswith("But"):
             if st.session_state[keys]:
@@ -26,7 +25,9 @@ def click():
                 filedata = result["filedata"]
                 uploaded_file = bytes(filedata, "utf-8")
                 file_name = result["file_name"]
-                st.download_button("Downlaod", uploaded_file, file_name = file_name)
+                
+                with col3:      
+                        st.download_button(f"Downlaod {file_name}", uploaded_file, file_name = file_name)
 
 if st.session_state["user"] != "None":
     st.header("All files")
@@ -45,7 +46,7 @@ if st.session_state["user"] != "None":
             names_list.append(names)
         
         for i in range(0, len(names_list)):
-            st.button("Download", key = f"Button{i}", on_click =  click)
+            st.button("Click here", key = f"Button{i}", on_click =  click)
             st.write(" ")
         
     

@@ -5,7 +5,7 @@ from next_page import nav_page
 from cryptography.fernet import Fernet
 
 def validate_email(email):
-    pattern = "^[a-zA-Z0-9-_]+@[a-zA-Z0-9]+\.[a-z]{1,3}$ "
+    pattern = "^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$"
     
     if re.match(pattern, email):
         return True
@@ -20,15 +20,15 @@ with st.form(key = "sign-up", clear_on_submit = True):
         if validate_email(email):
             pass
         else:
-            st.warning("Invalid email address")
+            st.error("Invalid email address")
         
     password1 = st.text_input(":blue[Password]", placeholder = "Password", type = "password")
     password2 = st.text_input(":blue[Confirm Password]", placeholder = "Password", type = "password")  
     if password1 != "" and len(password1) >= 6:
         if password1 != password2:
-            st.warning(":red[Password must be same]")
+            st.error(":red[Password must be same]")
     elif password1 != ""and len(password1) < 6:
-        st.warning("password is too short")
+        st.error("password is too short")
                    
     if password1 != password2:
         st.warning(":red[Password must be same]")

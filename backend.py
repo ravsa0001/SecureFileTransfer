@@ -57,7 +57,6 @@ def send_verification_email(all_info):
 def signUpCL():
     if request.method == "POST":
         data = request.json
-        # all_info = data["info"]
         send_verification_email(data)
         
         return jsonify({"message": "Verification link is sent to your Email"})
@@ -82,10 +81,8 @@ def login():
         temail = data["email"]
         
         email = users_data.find_one({"email": temail})
-        
         passwod = data["password"]
-        # return f"{passwod}"
-        print(email)
+
         if email:
             confirm = email["password"]
             if passwod == confirm:
@@ -104,18 +101,13 @@ def upload():
     file = data["file_name"]
 
     uploaded_file = data["uploaded_file"]
-    # filedata = bytes(uploaded_file, "utf-8")
     
     user_name = data["user_name"]
     userdata = users_data.find_one({"username": user_name})
-    # print(userdata, user_name)
     keykey = userdata["key"]
     byte_key = bytes(keykey, "utf-8")
     fernet = Fernet(byte_key)
     enfile = fernet.encrypt(uploaded_file.encode())
-    print("********************************88")
-    print(type(enfile))
-    
     
     unique_name = str(uuid.uuid4())[:8]+'.txt'
     path = "/home/vo1d/Desktop/VS_Code/ez/uploads/"
@@ -128,7 +120,6 @@ def upload():
         "file data": file_path,
         "upuser": user_name,
         "key": keykey
-        # "download key": unique_key,
     })
     return jsonify({"message": "File uploaded successfully"})
 
@@ -147,38 +138,18 @@ def uploaded():
     file_name = name_list[index]
     
     file_data = file_storage.find_one({"file name": file_name})
-    # print("$$$$$$$$$$$$$$$$$$$$$$4")
-    # print(file_data)
+    
     path = file_data["file data"]
     with open(path, "rb") as f:
         filedata = f.read()
     keykey = file_data["key"]
-    print(type(keykey))
     byte_key = bytes(keykey, "utf-8")
-    print(type(byte_key))
     fernet = Fernet(byte_key)
     
     file_decrypt = fernet.decrypt(filedata).decode()
     return jsonify({"filedata": file_decrypt, "file_name": file_name})
 
-    # for files in file_storage.find():
-    #     file_name = files["file name"]
-    #     path = files["file data"]
-        
-    #     with open(path, "rb") as f:
-    #         filedata = f.load()
-        
-    #     keykey = files["key"]
-    #     byte_key = bytes(keykey, "utf-8")
-    #     fernet = Fernet(byte_key)
-        
-    #     file_decrypt = fernet.decrypt(filedata).decode()
-        
-    #     # file_ka_data = bytes(file_decrypt, "utf-8")
-    #     return jsonify({"filedata": file_decrypt, "file_name": file_name})
-        
-        
- 
+
 
 
 if __name__ == "__main__":
