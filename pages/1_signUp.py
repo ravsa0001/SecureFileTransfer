@@ -29,9 +29,6 @@ with st.form(key = "sign-up", clear_on_submit = True):
             st.error(":red[Password must be same]")
     elif password1 != ""and len(password1) < 6:
         st.error("password is too short")
-                   
-    if password1 != password2:
-        st.warning(":red[Password must be same]")
     
     user_options = ["Client", "Operation"]
     user = st.selectbox("Register as ", user_options, index = 0)
