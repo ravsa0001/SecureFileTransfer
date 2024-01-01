@@ -16,6 +16,4 @@ with col7:
         nav_page("logIn")
 
 st.subheader("Here, this application is like a vault for securing your files")
-st.image("/home/vo1d/Desktop/VS_Code/ez/photos/vault.png")
-
-# st.image("/home/vo1d/Pictures/Screenshots/shadi_mistake.png")
+st.image("/photos/vault.png")
