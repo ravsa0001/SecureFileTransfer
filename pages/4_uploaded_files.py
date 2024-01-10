@@ -8,6 +8,9 @@ client = MongoClient("mongodb://127.0.0.1:27017")
 datab = client.ez
 file_storage = datab.files_storage
 
+if "user" not in st.session_state:
+    st.session_state["user"] = None
+
 if st.session_state["user"] == "None":
     st.header("Log-In first to get acces for this page")
 
