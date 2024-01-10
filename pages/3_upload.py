@@ -1,6 +1,8 @@
 import streamlit as st
 import requests
 
+if "user" not in st.session_state:
+    st.session_state["uesr"] = None
 
 if st.session_state["user"] == "None":
     st.header("Log-In first to get access for this page")
